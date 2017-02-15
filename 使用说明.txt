@@ -1,0 +1,26 @@
+python35 要现在环境变量里面把环境配置好
+D:\Python35
+D:\Python35\Scripts
+这两个地址要加到环境里面。
+
+mysql 5.0需要安装好 账户是root,密码是123456
+http://jingyan.baidu.com/article/375c8e1983ee1a25f3a2297f.html
+
+Navicat for Mysql 8.0需要安装 NAVJ-W56S-3YUU-MVHV 注册码 
+http://jingyan.baidu.com/article/03b2f78c6d69ce5ea237aed4.html
+
+要把数据导进去或者运行keliComunicator.py去远程获取数据。
+
+
+按住Shift键 然后右击 进入命令窗口
+运行 tornado_server.py
+
+
+nginx.exe 需要用cmd命令运行 
+启动的命令是 进入到文件加下面按住Shift键 然后右击 进入命令窗口 输入nginx.exe 回车
+重新启动的命令是 nginx.exe -s reload
+暂停的命令是 naginx.exe -s stop
+
+
+
+最后最好使用谷歌浏览器打开。
