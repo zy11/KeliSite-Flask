@@ -1,0 +1,448 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Home</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/mainhome.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/pure-min.css">
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="../static/js/jquery-1.9.0.min.js"></script>
+    <script type="text/javascript"  src="../static/js/echarts.min.js"></script>
+    <script type="text/javascript"  src="../static/js/china.js"></script>
+{#    <link href="//vjs.zencdn.net/5.4.6/video-js.min.css" rel="stylesheet">#}
+    <link rel="stylesheet" type="text/css" href="../static/css/video-js.css">
+    <script type="text/javascript" src="../static/js/video.js"></script>
+{#    <script src="//vjs.zencdn.net/5.4.6/video.min.js"></script>#}
+</head>
+<body>
+    <div class="body_bg"><img src="../static/image/bg.jpg" ></div>
+    <div class="keli" style="position:fixed; width:100%; height:100%; z-index:-1">
+        <div class="head" style="height: 60px;">
+            <a href = "/">
+                <img src="../static/image/keli_logo.png">
+            </a>
+        </div>
+        <div class="content">
+            <a class="col-lg-8 col-md-8 col-sm-8 col-xs-8" style="height:100%;"  href = "/Hotspot">
+                 <div id="map" style="height:95%;"> </div>
+            </a>
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="height:100%;">
+                <div class="videoBox">
+                    <div>
+                        <a id="enBtn" class="btn btn-primary ladda-button " style="background-color:#1052CC" data-style="expand-left">
+                            <span class="ladda-label">EN</span>
+                        </a>
+                        <a id="cnBtn" class="btn btn-primary ladda-button" style="background-color:rgba(200,0,0,0.7)"data-style="expand-left">
+                            <span class="ladda-label">CN</span>
+                        </a>
+                    </div>
+                    <div style="position:absolute;top:25px;z-index:2">
+                        <video id = "keliVideo" width="350" height="250" poster="../static/image/pgd.png" class="video-js vjs-default-skin" controls preload="auto" data-setup="{}">
+                                <source src="产品.mp4" type='video/mp4'>
+                       </video>
+                    </div>
+                    <div style="position:absolute;top:300px;z-index:4">
+                        <video id = "keliProdVideo" class="video-js vjs-default-skin" controls preload="auto" width="350" height="250" poster="../static/image/prod.png" data-setup="{}">
+                                <source src="柯力宣传片中文版0407.mp4" type='video/mp4'>
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+// 各个省份设备详细情况
+
+        function getChartData() {
+            $("#map").html('');
+            var myChart=echarts.init(document.getElementById('map'));
+            var options = myChart.getOption();
+            //通过Ajax获取数据
+            $.ajax({
+                type : "get",
+                async : true, //同步执行
+                url : "/keli/api/v1.0/devices/",
+                data : {},
+                dataType : "json", //返回数据形式为json
+                success : function(result) {
+                        options = {
+                            tooltip: {
+                                    trigger: 'item',
+                                    formatter: function (params) {
+                                      return params.name + " 设备数量 ：" + params.data.total;
+                                    }
+                                  },
+                            visualMap: {
+                                min: 0,
+                                max: 600,
+                                left: 'left',
+                                top: 'bottom',
+                                text: ['高','低'],           // 文本，默认为数值文本
+                                calculable: true,
+                                seriesIndex: [2],
+                                show: false
+                            },
+                            geo: {
+                                map: 'china',
+                                roam: false,
+                                label: {
+                                    emphasis: {
+                                        show: true
+                                    },
+                                    normal: {
+                                        show: false,
+                                        textStyle: {
+                                            color: 'rgba(0,0,0,0.4)'
+                                        }
+                                    }
+                                },
+                                itemStyle: {
+                                    normal: {
+                                        opacity:0.7,
+                                        shadowColor: 'rgba(0,0,0,0.9)',
+                                        shadowOffsetY:10,
+                                        shadowOffsetX:-10,
+                                        borderColor: 'black',
+                                        // areaColor: 'rgba(0,0,0,0.5)',
+                                        borderWidth:'2'
+                                    },
+                                    emphasis:{
+                                        areaColor: null,
+                                        shadowOffsetX: 2,
+                                        shadowOffsetY: 20,
+                                        shadowBlur: 20,
+                                        borderWidth: 0,
+                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                    }
+                                }
+                            },
+                            series : [
+                                {
+                                    type: 'scatter',
+                                    coordinateSystem: 'geo',
+                                    data: convertData(result.provinces),
+                                    symbolSize: 5,
+                                     rippleEffect: {
+                                            period: 6,
+                                            scale: 10,
+                                            brushType: 'stroke',
+                                    },
+                                    label: {
+                                        normal: {
+                                            formatter: '{b}',
+                                            position: 'right',
+                                            show: false
+                                        },
+                                        emphasis: {
+                                            show: false
+                                        }
+                                    },
+                                    itemStyle: {
+                                        normal: {
+                                             color: 'red',
+                                             shadowBlur: 10,
+                                             shadowColor: 'red',
+                                                }
+                                            }
+                                        },
+                                    {
+                                    type: 'effectScatter',
+                                    coordinateSystem: 'geo',
+                                     data: convertData(result.provinces.sort(function (a, b) {
+                                                return (b.online + b.offline) - (a.online + a.offline);
+                                              }).slice(0, 8)),
+                                    symbolSize: 8,
+                                    showEffectOn: 'render',
+                                    rippleEffect: {
+                                            brushType: 'stroke',
+                                            period: 10,
+                                            scale: 5,
+                                          },
+                                    hoverAnimation: true,
+                                    label: {
+                                        normal: {
+                                            formatter: '{b}',
+                                            position: 'right',
+                                            show: false
+                                        }
+                                    },
+                                    itemStyle: {
+                                        normal: {
+                                            color: 'red',
+                                            shadowBlur: 10,
+                                            shadowColor: 'red'
+                                        }
+                                    },
+                                },
+                                {
+                                        name: '设备',
+                                        type: 'map',
+                                        mapType: 'china',
+                                        geoIndex: 0,
+                                        roam: false,
+                                        label: {
+                                            normal: {
+                                                show: true,
+                                                textStyle: {
+                                                    color: '#333',
+                                                    fontSize:12,
+                                                }
+                                            }
+                                        },
+                                        data:convertMapData(result.provinces)
+                                    },
+                            ]
+                        };
+                        myChart.setOption(options);
+                    },
+                error : function(errorMsg) {
+                    alert("不好意思，图表请求数据失败啦!");
+                    myChart.hideLoading();
+                }
+            });
+            myChart.on('click', function (params) {
+                window.location.href = '/Hotspot/';
+            });
+        }
+     var geoCoordMap = {
+        '浙江':[119.825591,30.071947],
+        '甘肃':[104.224683,35.417025],
+        '青海':[97.555194,37.070609],
+        '四川':[101.690103,30.682215],
+        '贵州':[106.655426,27.582253],
+        '湖北':[111.806669,31.443315],
+        '广东':[113.235903,23.188997],
+        '山西':[111.698233,36.408645],
+        '北京':[116.359456,40.155229],
+        '上海':[121.398599,31.489148],
+        '重庆':[106.438732,29.74249],
+        '天津':[117.145959,39.170347],
+        '黑龙江':[126.48553,45.94058],
+        '吉林':[125.160925,43.901789],
+        '福建':[117.8956,27.168039],
+        '河北':[115.044594,38.751867],
+        '山东':[118.175009,36.121971],
+        '辽宁':[123.435847,41.824117],
+        '河南':[113.793577,33.13108],
+        '江苏':[120.014738,33.265699],
+        '湖南':[111.512313,29.015201],
+        '江西':[115.806076,28.737241],
+        '云南':[102.808134,24.925796],
+        '台湾':[121.016646,23.732095],
+        '海南':[110.19879,20.062616],
+        '陕西':[109.231048,35.752362],
+        '安徽':[116.734845,33.280912],
+        '内蒙古':[112.030311,41.44568],
+        '广西':[108.315666,22.863803],
+        '西藏':[91.125808,30.709936],
+        '新疆':[82.262558,41.074186],
+        '宁夏':[106.290355,37.746496],
+        '澳门':[113.524107,22.204874],
+        '香港':[114.177211,22.31619],
+    };
+    getChartData()
+    $(window).resize(function(){getChartData()})
+     function convertData(data) {
+         var res = [];
+         for (var i = 0; i < data.length; i++) {
+             var dataprovince=data[i].province;
+             if (data[i].province != null) {
+                 if((data[i].province=="内蒙古自治区")||(data[i].province=='黑龙江省'))
+                 {
+                    dataprovince = data[i].province.substring(0,3);
+                 }
+                 else
+                 {
+                    dataprovince = data[i].province.substring(0,2);
+                 }
+             }
+            var geoCoord = geoCoordMap[dataprovince];
+            var total = +data[i].online + data[i].offline;
+            if (geoCoord) {
+                res.push({
+                    name: dataprovince,
+                    value: geoCoord.concat(data[i],8),
+                    total: total
+                });
+            }
+        }
+        return res;
+    };
+    function convertMapData(data) {
+         var res = []
+         for (var i = 0; i < data.length; i++) {
+              var dataprovince=data[i].province;
+             if (data[i].province != null) {
+                 if((data[i].province=="内蒙古自治区")||(data[i].province=='黑龙江省'))
+                 {
+                    dataprovince = data[i].province.substring(0,3);
+                 }
+                 else
+                 {
+                    dataprovince = data[i].province.substring(0,2);
+                 }
+             }
+            var geoCoord = geoCoordMap[dataprovince];
+            var total = +data[i].online + data[i].offline;
+            if (geoCoord) {
+                res.push({
+                    name: dataprovince,
+                    value: total,
+                    total: total,
+                });
+            }
+        }
+
+        return res;
+    };
+
+
+
+
+//反射調用
+var invokeFieldOrMethod = function(element, method)
+{
+    var usablePrefixMethod;
+    ["webkit", "moz", "ms", "o", ""].forEach(function(prefix) {
+        if (usablePrefixMethod) return;
+        if (prefix === "") {
+            // 无前缀，方法首字母小写
+            method = method.slice(0,1).toLowerCase() + method.slice(1);
+        }
+        var typePrefixMethod = typeof element[prefix + method];
+        if (typePrefixMethod + "" !== "undefined") {
+            if (typePrefixMethod === "function") {
+                usablePrefixMethod = element[prefix + method]();
+            } else {
+                usablePrefixMethod = element[prefix + method];
+            }
+        }
+    });
+    return usablePrefixMethod;
+};
+
+//進入全屏
+function launchFullscreen(element)
+{
+    //此方法不可以在異步任務中執行，否則火狐無法全屏
+    if(element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+    } else if(element.msRequestFullscreen){
+        element.msRequestFullscreen();
+    } else if(element.oRequestFullscreen){
+        element.oRequestFullscreen();
+    }
+    else if(element.webkitRequestFullscreen)
+    {
+        element.webkitRequestFullScreen();
+    }else{
+        if(element.webkitEnterFullscreen) {
+            element.webkitEnterFullscreen();
+        }
+        else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        }
+        else {
+            alert('Your browsers doesn\'t support fullscreen');
+        }
+    }
+}
+
+//退出全屏
+function exitFullscreen()
+{
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if(document.oRequestFullscreen){
+        document.oCancelFullScreen();
+    }else if (document.webkitExitFullscreen){
+        document.webkitExitFullscreen();
+    }else{
+        return;
+    }
+}
+
+// video
+
+    var keliVideo = $('#keliVideo');
+    var vList = ['柯力宣传片中文版0407.mp4', '柯力宣传片英文版0407.mp4']; // 初始化播放列表
+    var curr = 0;
+
+    function nextVideo(element) {
+        element.src = vList[curr];
+        element.load();
+        element.play();
+        curr++;
+        if(curr >= vList.length){
+            curr = 0; //重新循环播放
+        }
+    }
+
+    keliVideo.on('ended', function(){
+        nextVideo(keliVideo[0]);
+    });
+
+    var keliProdVideo = $('#keliProdVideo');
+    var vListProd = ['产品.mp4']; // 初始化播放列表
+    var curr = 0;
+
+    function nextVideo(element) {
+    element.src = vListProd[curr];
+    element.load();
+    element.play();
+    curr++;
+    if(curr >= vListProd.length){
+        curr = 0; //重新循环播放
+    }
+}
+
+
+    keliProdVideo.on('ended', function(){
+    nextVideo(keliProdVideo[0]);
+    });
+
+    keliVideo.on('click',function(){
+        if(invokeFieldOrMethod(document,'FullScreen') || invokeFieldOrMethod(document,'IsFullScreen') || document.IsFullScreen)
+        {
+            console.log("pause");
+            exitFullscreen();
+            keliVideo[0].pause();
+        }else {
+            console.log("play");
+            launchFullscreen(keliVideo[0]);
+            keliVideo[0].play();
+        }
+    });
+
+    var keliProdVideo = $('#keliProdVideo');
+        keliProdVideo.on('click',function(){
+            if(invokeFieldOrMethod(document,'FullScreen') || invokeFieldOrMethod(document,'IsFullScreen') || (document.IsFullScreen))
+           {
+                keliProdVideo[0].pause();
+                exitFullscreen();
+            }else {
+                keliProdVideo[0].play();
+                launchFullscreen(keliProdVideo[0]);
+           }
+        });
+        document.getElementById("cnBtn").onclick=function(){
+            keliVideo[0].src="柯力宣传片中文版0407.mp4";
+            $("#enBtn").css({"zoom":"0.8"})
+            $(this).css({"zoom":"1.2"})
+        }
+		document.getElementById("enBtn").onclick=function(){
+            keliVideo[0].src="柯力宣传片英文版0407.mp4";
+            $("#cnBtn").css({"zoom":"0.8"})
+            $(this).css({"zoom":"1.2"})
+        }
+
+</script>

@@ -1,0 +1,437 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Devices</title>
+    <script type="text/javascript" src="../static/js/jquery-1.9.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../static/css/maindevices.css">
+    <link rel="stylesheet" type="text/css" href="../static/css/pure-min.css">
+    <script type="text/javascript"  src="../static/js/echarts.min.js"></script>
+    <script type="text/javascript"  src="../static/js/main3.js"></script>
+</head>
+
+<body >
+    <div class="body_bg"><img src="../static/image/bg.jpg" ></div>
+    <div class="keli" style="position:fixed; width:100%; height:100%;">
+          <div class="head"style="height: 60px;">
+            <a href = "/">
+                <img src="../static/image/keli_logo2.png">
+            </a>
+          </div>
+          <div class="head2">
+              <div class="company_top"><a>所有公司</a></div>
+             <div class="content_t"> </div>
+          </div>
+          <div class="content">
+              <div class="content_q">
+               <a href="/">首页</a>
+              </div>
+              <div class="content_f">
+               <a href="/Hotspot/" class="magin-top:100px">返回</a>
+              </div>
+             <div class="content_l">
+                <div class="content_title">设备数量</div>
+                <div class="circle">
+                    <div id="data" style="height:100%;"></div>
+                </div>
+                <div class="content_title">设备状态</div>
+                <div class="table">
+                    <div class="table_top">
+                        <div>所属公司</div>
+                        <div>显示<span>使用状态</span></div>
+                        <div><span>实时</span>状况</div>
+                        <div>故障次数</div>
+                        <div>故障信息</div>
+                    </div>
+                    <div  id="table_list">
+                        <div class="table_item">
+
+                        </div>
+                    </div>
+                    <div class="page" style="padding-top:5px;padding-bottom:10px;">
+                        <a href="#?page=2"> 上一页</a>
+                    </div>
+                </div>
+            </div>
+             <div class="content_r">
+                  <div id="company_list">
+                      <a>宁波柯力传感科技有限公司</a>
+                  </div>
+             </div>
+          </div>
+     </div>
+</div>
+
+<div class="modal fade" id="deviceAlarmRecord" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="deviceSn">Modal title</h4>
+      </div>
+      <div class="modal-body" id="deviceAlarmRecordContent">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="hw-overlay" id="hw-layer">
+  <div class="hw-layer-wrap"> <span class="glyphicon glyphicon-remove hwLayer-close"></span>
+    <div class="row">
+      <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 hw-icon"> <i class="glyphicon glyphicon-info-sign"></i> </div>
+      <div class="col-lg-3 col-md-9 col-sm-9 col-xs-9">
+        <h5 style="text-align:center;color:#666666" id="gzId">详细故障信息</h5>
+          <table class="gzTable">
+            <thead>
+                <th width="25%">故障时间</th>
+                <th width="25%">故障码</th>
+                <th width="25%"> 故障地址</th>
+                <th width="25%">维保记录</th>
+            </thead>
+            <tbody id="gzList">
+
+            </tbody>
+        </table>
+        <div class="gzPage">
+            <a>上一页</a>
+            <a>下一页</a>
+        </div>
+        <button class="btn btn-success hwLayer-ok">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#deviceAlarmRecord">
+  DeviceAlarmRecord
+</button>
+
+</body>
+</html>
+<script type="text/javascript">
+    function getUrlParam(key){
+        // 获取参数
+        var url = window.location.search;
+        // 正则筛选地址栏
+        var reg = new RegExp("(^|&)"+ key +"=([^&]*)(&|$)");
+        // 匹配目标参数
+        var result = url.substr(1).match(reg);
+        //返回参数值
+        return result ? decodeURIComponent(result[2]) : null;
+    }
+    var p=getUrlParam('p');
+    var title = p;
+    var selectConpamy = '';
+    $(".content_t").html(p);
+
+    function getChartData() {
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/devices/province/count/"+p,
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data){
+                showCircle(data);
+            },
+            error : function(errorMsg) {
+                alert("不好意思，图表请求数据失败啦!");
+                myChart.hideLoading();
+            }
+        });
+    }
+    var myChart=echarts.init(document.getElementById('data'));
+    function getCompanyCircle(name) {
+
+
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/devices/province/"+p+"/company/count/"+name,
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data){
+                showCircle(data);
+            },
+            error : function(errorMsg) {
+                alert("不好意思，图表请求数据失败啦!");
+                myChart.hideLoading();
+            }
+        });
+    }
+
+    function showCircle(data) {
+
+            options = {
+                color: ['#cd5658', '#60b3df'],
+                text: {
+                    text: '设备数量',
+                    textStyle: {
+                        fontsize: '18',
+                        color: '#000'
+                    },
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+
+                },
+                legend: {
+                    orient: 'vertical',
+                    x: 'right',
+                    y: 'top',
+                    textStyle: {
+                        color: '#fff'
+                    },
+                    data: ['在线数量', '非在线数量']
+
+                },
+                calculable: true,
+                series: [
+                    {
+                        name:title,
+                        type: 'pie',
+                        radius: ['0%', '80%'],
+                        itemStyle: {
+                            normal: {
+                                opacity:1,
+                                shadowColor: 'rgba(0,0,0,1)',
+                                shadowBlur: 15,
+                                borderColor: 'white',
+                                borderWidth:'1',
+                                label: {
+                                    show: false,
+                                },
+                                labelLine: {
+                                    show: false,
+                                }
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    position: 'center',
+                                    textStyle: {
+                                        fontSize: '15',
+                                        fontWeight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        data: [
+                            {value: data.offline, name: '非在线数量'},
+                            {value: data.online, name: '在线数量'}
+
+                        ]
+                    }
+                ]
+            };
+             myChart.setOption(options);
+        };
+
+    function showDevicesList(data,pageIndex) {
+        var result=data.devicesDetails;
+        var pageCount=parseInt(data.detailsCount/8)+1;
+        var pageStart=pageIndex-2>0?pageIndex-2:1;
+        if(pageCount<7)pageStart=1;
+        var pageEnd=pageStart+5<pageCount?pageStart+5:pageCount;
+        if(pageEnd-pageStart<5&&pageEnd-5>0)pageStart=pageEnd-5;
+        var pageHtml='<a onclick="getListData(1)"> 首页</a><a onclick="getListData('+(pageIndex==1?pageIndex:pageIndex-1)+')"> 上一页</a>';
+        for(var i=pageStart;i<=pageEnd;i++){
+            if(i==pageIndex){
+                pageHtml+='<a style="color:red;" onclick="getListData('+i+')"> '+i+'</a>';
+            }else{
+                pageHtml+='<a onclick="getListData('+i+')"> '+i+'</a>';
+            }
+        }
+         pageHtml+='<a  onclick="getListData('+(pageIndex==pageCount?pageCount:pageIndex+1)+')"> 下一页</a><a onclick="getListData('+pageCount+')"> 尾页</a>';
+         $(".page").html(pageHtml);
+
+
+
+        var listxxHtml='\
+                <div class="table_item">\
+                    <div class="bg company">&nbsp;</div>\
+                    <div>&nbsp;</div>\
+                    <div class="bg">&nbsp;</div>\
+                    <div >&nbsp;</div>\
+                    <div >&nbsp;</div>\
+                </div>';
+        $("#table_list").html('');
+        for(var i=0;i<8;i++){
+            var listxxItem = $($.parseHTML(listxxHtml));
+			if(i<result.length){
+				listxxItem.find("div:eq(0)").html("宁波柯力传感科技股份有限公司");
+				if(result[i].company)listxxItem.find("div:eq(0)").html(result[i].company);
+				listxxItem.find("div:eq(1)").html(result[i].inited);
+				listxxItem.find("div:eq(2)").html(result[i].stat);
+				listxxItem.find("div:eq(3)").html(result[i].almNum);
+				var stat = result[i].stat;
+				var serviceinfo = result[i].serviceInfo
+				if (stat != '故障')
+					listxxItem.find("div:eq(4)").html( serviceinfo)
+				else
+					serviceinfo = result[i].serviceInfo+'|'+'<a onclick='+"getPupData(1,"+"'"+result[i].gprsSn+"'"+")"+'>'+'故障详情'+'</a>'
+					listxxItem.find("div:eq(4)").html(serviceinfo);
+			}
+            $("#table_list").append(listxxItem);
+        }
+    }
+    $(".company_top").click(function(){
+        selectConpamy='';
+        getListData(1) ;
+    })
+    function getListData(pageIndex) {
+        if(selectConpamy!=''){
+            getProvinceDeviceListByCompany(selectConpamy,pageIndex) ;
+            return;
+        }
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/devices/province/"+p+"/"+pageIndex,
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data) {
+                getChartData();
+                showDevicesList(data,pageIndex);
+            },
+            error : function(errorMsg) {
+                alert("不好意思，设备信息请求失败!");
+                myChart.hideLoading();
+            }
+        });
+    }
+
+    function getProvinceDeviceListByCompany(company,pageIndex) {
+        selectConpamy = company;
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/devices/province/"+p+"/company/"+encodeURI(company)+"/"+pageIndex,
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data) {
+               getCompanyCircle(data.devicesDetails[0].company);
+               showDevicesList(data,pageIndex);
+               title = company;
+            },
+            error : function(errorMsg) {
+                alert("不好意思，设备信息请求失败!");
+                myChart.hideLoading();
+            }
+        });
+    }
+
+    function getPupData(pageIndex,gprsSn) {
+        $("#gzId").html(gprsSn);
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/device/"+gprsSn+"/alarms/"+pageIndex,
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data) {
+                var pageCount=parseInt(data.devicesCount/6)+1;
+                var pageHtml='<a onclick="getPupData(1,\''+gprsSn+'\')"> 首页</a><a onclick="getPupData('+(pageIndex==1?pageIndex:pageIndex-1)+',\''+gprsSn+'\')"> 上一页</a>';
+                pageHtml+='<a  onclick="getPupData('+(pageIndex==pageCount?pageCount:pageIndex+1)+',\''+gprsSn+')\'"> 下一页</a><a onclick="getPupData('+pageCount+',\''+gprsSn+'\')"> 尾页</a>';
+               $(".gzPage").html(pageHtml);
+                var re=data.devicesCountry;
+                 var gzListHtml='\
+                                <tr>\
+                                    <td>1</td>\
+                                    <td>2</td>\
+                                    <td>3</td>\
+                                    <td>4</td>\
+                                </tr>';
+                 $("#gzList").html('');
+                 for(var i=0;i<re.length;i++){
+                     var gzListItem = $($.parseHTML(gzListHtml));
+                     if(re[i].addr)gzListItem.find("td:eq(0)").html(re[i].addr);
+                     if(re[i].code)gzListItem.find("td:eq(1)").html(re[i].code);
+                     if(re[i].recordTime)gzListItem.find("td:eq(2)").html(re[i].recordTime);
+                     if(re[i].stat)gzListItem.find("td:eq(3)").html(re[i].stat);
+                     $("#gzList").append(gzListItem);
+                 }
+
+                 if($("#hw-layer").is(":hidden")){
+                     showLayer("hw-layer");
+                 }
+
+            },
+            error : function(errorMsg) {
+                alert("不好意思，设备故障详情请求失败!");
+                myChart.hideLoading();
+            }
+        });
+    }
+{#    var companyItemHtml [ ];#}
+
+    function getCompanyData() {
+        $.ajax({
+            type : "get",
+            async : true, //同步执行
+            url : "/keli/api/v1.0/devices/province/"+p+"/companys",
+            data : {},
+            dataType : "json", //返回数据形式为json
+            success : function(data) {
+                var companys=data.company;
+                console.log(data.company);
+                var companyItemHtml="<a></a>";
+                $("#company_list").html('');
+                for(var i=0;i<companys.length;i++){
+                    var companyItem = $($.parseHTML(companyItemHtml));
+{#                    companyItem.html(companys[i].name);#}
+
+                    companyItem.html('<a onclick='+"getProvinceDeviceListByCompany("+"'"+companys[i].name+"'"+",1)"+'>'+companys[i].name+'</a>');
+
+                    $("#company_list").append(companyItem);
+                }
+            },
+            error : function(errorMsg) {
+                alert("不好意思，图表请求数据失败啦!");
+                myChart.hideLoading();
+            }
+        });
+    }
+    getChartData();
+    getListData(1);
+    getCompanyData();
+	//展示层
+	function showLayer(id){
+		var layer = $('#'+id),
+			layerwrap = layer.find('.hw-layer-wrap');
+		layer.fadeIn();
+		//屏幕居中
+		layerwrap.css({
+			'margin-top': -layerwrap.outerHeight()/2
+		});
+	}
+	//隐藏层
+	function hideLayer(){
+		$('.hw-overlay').fadeOut();
+	}
+	$('.hwLayer-ok,.hwLayer-cancel,.hwLayer-close').on('click', function() {
+		hideLayer();
+	});
+	//触发弹出层
+	$('.show-layer').on('click',  function() {
+		var layerid = $(this).data('show-layer');
+		showLayer(layerid);
+	});
+	//点击或者触控弹出层外的半透明遮罩层，关闭弹出层
+	$('.hw-overlay').on('click',  function(event) {
+		if (event.target == this){
+			hideLayer();
+		}
+	});
+	//按ESC键关闭弹出层
+	$(document).keyup(function(event) {
+		if (event.keyCode == 27) {
+			hideLayer();
+		}
+	});
+</script>
